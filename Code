@@ -1,0 +1,48 @@
+#Gui
+import tkinter as tk
+import tkinter.scrolledtext as tkst
+from tkinter import *
+def center_window(width=300, height=200):
+    # get screen width and height
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    # calculate position x and y coordinates
+    x = (screen_width/2) - (width/2)
+    y = (screen_height/2) - (height/2)
+    root.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
+
+
+root=Tk()
+root.title("Writing is hard!")
+root.configure(background='lightgrey')
+#Sets size of window
+center_window(1200,600)
+#heading
+heading = Label(root, text="Welcome to the app which checks your content for you!", font=("arial",30,"bold"), fg="steelblue", background='lightgrey')
+#Label
+label1=Label(root, text="Please type in your article: ", font=("arial",20,"bold"), fg="steelblue", background='lightgrey')
+#Textbox
+ArticleTextBox = tkst.ScrolledText(width=100, height=20,)
+ArticleTextBox.insert("end", "", ("centered",))
+#Left,Middle,Center
+
+w = Canvas(root, width=200, height=10)
+
+
+#Button Controller
+def do_it():
+    article=ArticleTextBox.get(0.0,tk.END)
+    ArticleTextBox.tag_configure("centered", justify="center")
+    print(article)
+work= Button(root, text="Check", width=30,height=5,bg="lightblue",command=do_it)
+
+#Puts everything on screen
+heading.pack()
+label1.pack()
+ArticleTextBox.pack()
+
+#w.place(x=210, y=230)
+work.pack()
+root.mainloop()
