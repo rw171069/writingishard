@@ -1,0 +1,9 @@
+#pip install lxml
+#pip install beautifulsoup4
+import bs4 as bs
+import urllib.request
+sauce = urllib.request.urlopen('https://newsroom.fb.com/news/2014/03/facebook-to-acquire-oculus/').read()
+soup = bs.BeautifulSoup(sauce,'lxml')
+
+for paragraph in soup.find_all('p'):
+    print(paragraph.text)
