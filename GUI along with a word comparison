@@ -1,0 +1,101 @@
+#Gui
+import tkinter as tk
+import tkinter.scrolledtext as tkst
+from tkinter import *
+#pip install nltk
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+#pip install lxml
+import bs4 as bs
+import urllib.request
+
+import numpy as np
+
+
+def center_window(width=300, height=200):
+    # get screen width and height
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    # calculate position x and y coordinates
+    x = (screen_width/2) - (width/2)
+    y = (screen_height/2) - (height/2)
+    root.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
+
+
+root=Tk()
+root.title("Writing is hard!")
+root.configure(background='lightgrey')
+#Sets size of window
+center_window(1200,600)
+#heading
+heading = Label(root, text="Welcome to the app which checks your content for you!", font=("arial",30,"bold"), fg="steelblue", background='lightgrey')
+#Label1
+label1=Label(root, text="Please type in the website for your source ", font=("arial",20,"bold"), fg="steelblue", background='lightgrey')
+#Label2
+label2=Label(root, text="Please type in your article: ", font=("arial",20,"bold"), fg="steelblue", background='lightgrey')
+#Textbox
+ArticleTextBox = tkst.ScrolledText(width=100, height=20,)
+ArticleTextBox.insert("end", "", ("centered",))
+#Location for source material
+SourceTextbox=Entry(root)
+w = Canvas(root, width=200, height=10)
+
+
+#Button Controller
+def do_it():
+    SimilarWords=["none"]*500
+    g=0
+    article=ArticleTextBox.get(0.0,tk.END)
+    source=SourceTextbox.get()
+    #Prints the input into the command prompt
+    #print(article)
+    #Removes the 'stop' words for summary fromm article
+    stop_words=set(stopwords.words("english"))
+    words = word_tokenize(article) 
+    filtered_sentence=[]
+    for w in words:
+        if w not in stop_words:
+            filtered_sentence.append(w)
+    filtered_sentence_string=str(filtered_sentence)
+    filtered_sentence_string_noquotes=filtered_sentence_string.replace("'",' ')
+    filtered_sentence_string_noquotescommas=filtered_sentence_string_noquotes.replace(",",' ')
+    filtered_sentence_string_noquotescommas=filtered_sentence_string_noquotescommas.replace("[",' ')    
+    #Remove stop words of the source material
+    sauce = urllib.request.urlopen(source).read()
+    soup = bs.BeautifulSoup(sauce,'lxml')
+    source_stopwords=""
+    for paragraph in soup.find_all('p'):
+        source_stopwords=source_stopwords+paragraph.text
+    print(source_stopwords)
+    source_list=source_stopwords.split()
+    source_array = np.asarray(source_list)
+    source_len=len(source_array)
+    article_list=filtered_sentence_string_noquotescommas.split()
+    article_array = np.asarray(article_list)
+    article_len=len(article_array)
+    SimilarWords_len=len(SimilarWords)
+    for x in range(0,source_len):
+        for j in range(0,article_len):
+            if source_array[x]==article_array[j]:
+                SimilarWords[g]=source_array[x]
+                g=g+1
+    print(SimilarWords)
+
+#When work button is clicked do_it will occur
+work= Button(root, text="work", width=30,height=5,bg="lightblue",command=do_it)
+
+
+#Puts everything on screen
+heading.pack()
+label1.pack()
+SourceTextbox.pack()
+label2.pack()
+ArticleTextBox.pack()
+
+#w.place(x=210, y=230)
+
+work.pack()
+root.mainloop()
