@@ -1,0 +1,140 @@
+#Pip
+#pip install nltk
+
+#Imports
+import tkinter as tk
+import tkinter.scrolledtext as tkst
+from tkinter import *
+from nltk import ne_chunk, pos_tag, word_tokenize
+from nltk.tree import Tree
+from nltk.corpus import state_union
+
+#Array
+colournumber=[""]
+colours=["","red","blue"]
+
+def _on_click(event):
+    sel()
+    tags = ArticleTextBox.tag_names("insert wordstart")
+    if "highlight" in tags:
+        ArticleTextBox.tag_remove("highlight", "insert wordstart", "insert wordend")
+    else:
+        ArticleTextBox.tag_add("highlight", "insert wordstart", "insert wordend")           
+
+#Decides what to do when the button is pressed- Highlight the names
+def highlight_text():
+    ArticleTextBox.tag_config('highlight', background='yellow', foreground='black')
+    article=ArticleTextBox.get(0.0,tk.END)
+    my_sent=article
+    names=(get_continuous_chunks(my_sent))
+    namesSTR=str(names)
+    lenght = StringVar()
+    nameslistlength=len(names)
+    print("This is the list: "+namesSTR)
+
+    for w in range(0,nameslistlength):
+        pos='1.0'
+        while True:
+            pos = ArticleTextBox.search(names[w], pos, stopindex=END, count=lenght)
+            if not pos:
+                break
+            ArticleTextBox.tag_add('highlight', pos, '{}+{}c'.format(pos, lenght.get()))
+            pos += '+1c'       
+    
+    #print(colour[0])
+    
+#Highlighter mode
+def highlighter_mode():
+    state = str(namebutton['state'])
+    if state == 'disabled':
+        namebutton.configure(state=NORMAL)
+        numberbutton.configure(state=NORMAL)
+        namebutton.select()
+        
+    else:
+        namebutton.configure(state=DISABLED)
+        numberbutton.configure(state=DISABLED)
+
+#Colour picker
+def sel():
+   selection = "You selected the option " + str(var.get())
+   colournumber=(var.get())
+   if colournumber==2:
+       ArticleTextBox.tag_config('highlight', background='red', foreground='black')
+   elif colournumber==3:
+       #print("Sorry this is not working at the moment- Please go back to name selection before you click the button")
+       ArticleTextBox.tag_config('highlight', background='blue', foreground='black')
+   else:
+       ArticleTextBox.tag_config('highlight', background='yellow', foreground='black')
+
+#Sorts out the size of the screen
+def center_windowroot(width=300, height=200):
+    # get screen width and height
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    # calculate position x and y coordinates
+    x = (screen_width/2) - (width/2)
+    y = (screen_height/2) - (height/2)
+    root.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
+
+
+#Splits down the names
+def get_continuous_chunks(text):
+        chunked = ne_chunk(pos_tag(word_tokenize(text)))
+        prev = None
+        continuous_chunk = []
+        current_chunk = []
+        for i in chunked:
+                if type(i) == Tree:
+                        current_chunk.append(" ".join([token for token, pos in i.leaves()]))
+                elif current_chunk:
+                        named_entity = " ".join(current_chunk)
+                        if named_entity not in continuous_chunk:
+                                continuous_chunk.append(named_entity)
+                                current_chunk = []
+                else:
+                        continue
+        return continuous_chunk
+
+
+numbercolour=colournumber[0]       
+#Creates the main frame
+root = tk.Tk()
+root.title("Writing is hard!")
+root.configure(background='lightgrey')
+#Sets size of window
+center_windowroot(500,500)
+#heading
+heading = Label(root, text="Welcome to the app which checks your content for you!", font=("arial",30,"bold"), fg="steelblue", background='lightgrey')
+#Label
+label1=Label(root, text="Please type in your article: ", font=("arial",20,"bold"), fg="steelblue", background='lightgrey')
+#Highlighter labels
+namelabel= Label(text="names", font=("arial",10,"bold"), fg="black", background='red')
+numberlabel=Label(text="numbers", font=("arial",10,"bold"), fg="black", background='blue')
+#Highlighter radiobuttons
+var = IntVar()
+highlightermode=Checkbutton(root, text="Highlighter mode",variable=var,command=highlighter_mode)
+highlightermode.select()
+namebutton=Radiobutton(root, variable=var, value=2,command=sel, state=DISABLED)
+numberbutton=Radiobutton(root, variable=var, value=3,command=sel, state=DISABLED)
+#Textbox
+ArticleTextBox = tkst.ScrolledText(root,width=100, height=20,)
+ArticleTextBox.insert("end", "", ("centered",))
+ArticleTextBox.tag_config('highlight', background='yellow', foreground='black')
+ArticleTextBox.bind("<ButtonRelease-1>", _on_click)
+#locations
+
+heading.grid(row=0,column=0,sticky="nesw")
+label1.grid(row=1,column=0,sticky="nesw")
+ArticleTextBox.grid(row=2,column=0,sticky="nesw",rowspan=10)
+button = Button(root,text='Highlight Text',command=highlight_text).grid(row=13,column=0,)
+namelabel.grid(row=1,column=1,sticky="nesw")
+numberlabel.grid(row=2,column=1,sticky="nesw")
+namebutton.grid(row=1,column=2,sticky="ew")
+numberbutton.grid(row=2,column=2,sticky="ew")
+highlightermode.grid(row=6,column=1)
+
+
+root.mainloop()  
