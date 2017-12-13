@@ -1,0 +1,228 @@
+#Pip
+#pip install nltk
+
+#Imports
+import tkinter as tk
+import tkinter.scrolledtext as tkst
+from tkinter import *
+from nltk import ne_chunk, pos_tag, word_tokenize
+from nltk.tree import Tree
+from nltk.corpus import state_union
+import bs4 as bs
+import urllib.request
+import string
+
+
+#Array
+colournumber=[""]
+colours=["","red","blue"]     
+class defines():
+    global names
+    names=[]
+    global Search 
+    Search=[]
+    def _on_click(self, event):
+        state = str(namebutton['state'])
+        if state != 'disabled':
+            returnedlist=d.highlight_text()
+            print("This is the returned list")
+            print(returnedlist)
+            print("Close")
+            print(Search)
+            d.sel()
+            tags = ArticleTextBox.tag_names("insert wordstart")
+
+            if "highlight" in tags:
+                #Unhighlights
+                ArticleTextBox.tag_remove("highlight", "insert wordstart", "insert wordend")
+                wordclicked=ArticleTextBox.get("insert wordstart", "insert wordend")
+                SearchLEN=len(Search)
+                for x in range(0,SearchLEN):
+                    if Search[x]==wordclicked:
+                        #global Search    # Needed to modify global copy of globvar
+                        Search.remove(wordclicked)
+                
+            else:
+                #highlights
+                ArticleTextBox.tag_add("highlight", "insert wordstart", "insert wordend")
+                wordclicked=ArticleTextBox.get("insert wordstart", "insert wordend")
+                #global Search    # Needed to modify global copy of globvar
+                Search.append(wordclicked)
+                #print(Search)
+                
+                
+            return Search
+            
+                
+
+    #Decides what to do when the button is pressed- Highlight the names
+    def highlight_text(self):
+        ArticleTextBox.tag_config('highlight', background='yellow', foreground='black')
+        article=ArticleTextBox.get(0.0,tk.END)
+        my_sent=article
+        global names
+        names=(d.get_continuous_chunks(my_sent))
+        namesSTR=str(names)
+        lenght = StringVar()
+        nameslistlength=len(names)
+        print("This is the list: "+namesSTR)
+        for w in range(0,nameslistlength):
+            pos='1.0'
+            while True:
+                pos = ArticleTextBox.search(names[w], pos, stopindex=END, count=lenght)
+                if not pos:
+                    break
+                ArticleTextBox.tag_add('highlight', pos, '{}+{}c'.format(pos, lenght.get()))
+                pos += '+1c'
+        
+        
+                
+    def unhighlight_text(self):
+        ArticleTextBox.tag_config('highlight', background='white', foreground='black')
+        
+    #Highlighter mode
+    def highlighter_mode(self):
+        print(names)
+        state = str(namebutton['state'])
+        if state == 'disabled':
+            namebutton.configure(state=NORMAL)
+            
+            numberbutton.configure(state=NORMAL)
+            namebutton.select()
+            d.highlight_text()
+            
+        else:
+            namebutton.configure(state=DISABLED)
+            numberbutton.configure(state=DISABLED)
+            d.unhighlight_text()
+
+    #Colour picker
+    def sel(self):
+       selection = "You selected the option " + str(var.get())
+       colournumber=(var.get())
+       if colournumber==2:
+           ArticleTextBox.tag_config('highlight', background='yellow', foreground='black')
+       elif colournumber==3:
+           ArticleTextBox.tag_config('highlight', background='blue', foreground='black')
+       else:
+           ArticleTextBox.tag_config('highlight', background='yellow', foreground='black')
+
+
+    #Checking of names
+    def checking(self):
+        global Search
+        global names
+        TotalSearch=list(set(Search + names))
+        source=SourceTextBox.get()
+        sauce = urllib.request.urlopen(source).read()
+        soup = bs.BeautifulSoup(sauce,'lxml')
+        source_stopwords=""
+        for paragraph in soup.find_all('p'):
+            source_stopwords=source_stopwords+paragraph.text
+        SourceList=source_stopwords.split()
+        SourceList = [''.join(c for c in s if c not in string.punctuation) for s in SourceList]        SourceListLEN=len(SourceList)
+        TotalSearchSTR = " ".join(TotalSearch)
+        TotalSearchLST=TotalSearchSTR.split()
+        TotalSearchLEN=len(TotalSearchLST)
+        NotIncludedWords = list(TotalSearchLST)
+    
+
+        matching_words=[]
+        for x in range(0,TotalSearchLEN):
+            for y in range(0,SourceListLEN):
+                if TotalSearchLST[x]==SourceList[y]:
+                    matching_words.append(TotalSearchLST[x])
+        print("The matching words are")
+        print(matching_words)
+        print("The names not mentioned are: ")
+        CheckingWords=(list(set(TotalSearchLST) - set(matching_words)))
+        WordsLabel.config(text=CheckingWords)
+
+        
+    #Splits down the names
+    def get_continuous_chunks(self,text):
+            chunked = ne_chunk(pos_tag(word_tokenize(text)))
+            prev = None
+            continuous_chunk = []
+            current_chunk = []
+            for i in chunked:
+                    if type(i) == Tree:
+                            current_chunk.append(" ".join([token for token, pos in i.leaves()]))
+                    elif current_chunk:
+                            named_entity = " ".join(current_chunk)
+                            if named_entity not in continuous_chunk:
+                                    continuous_chunk.append(named_entity)
+                                    current_chunk = []
+                    else:
+                            continue
+            return continuous_chunk
+
+
+
+    #Sorts out the size of the screen
+def center_windowroot(width=300, height=200):
+    # get screen width and height
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    # calculate position x and y coordinates
+    x = (screen_width/2) - (width/2)
+    y = (screen_height/2) - (height/2)
+    root.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
+
+numbercolour=colournumber[0]
+d = defines()
+#Creates the main frame
+root = tk.Tk()
+root.title("Writing is hard!")
+root.configure(background='lightgrey')
+#Sets size of window
+center_windowroot(1000,500)
+#heading
+heading = Label(root, text="Welcome to the app which checks your content for you!", font=("arial",30,"bold"), fg="steelblue", background='lightgrey')
+#Source label
+SourceLabel=Label(root,text="Please enter the source material website", font=("arial",20,"bold"), fg="steelblue", background='lightgrey')
+SourceTextBox=Entry(root)
+#Label
+label1=Label(root, text="Please type in your article: ", font=("arial",20,"bold"), fg="steelblue", background='lightgrey')
+#Buttons
+Highlight_textBTN= Button(root,text='Show highlights',command=d.highlight_text)
+Unhighlight_textBTN=Button(root,text='Hide highlights',command=d.unhighlight_text)
+CheckBTN=Button(root,text='Check',command=d.checking)
+#Highlighter labels
+namelabel= Label(text="names", font=("arial",10,"bold"), fg="black", background='yellow')
+numberlabel=Label(text="numbers", font=("arial",10,"bold"), fg="black", background='blue')
+#Highlighter radiobuttons
+var = IntVar()
+highlightermode=Checkbutton(root, text="Highlighter mode",variable=var,command=d.highlighter_mode)
+highlightermode.select()
+namebutton=Radiobutton(root, variable=var, value=2,command=d.sel, state=DISABLED)
+numberbutton=Radiobutton(root, variable=var, value=3,command=d.sel, state=DISABLED)
+#Textbox
+ArticleTextBox = tkst.ScrolledText(root,width=100, height=20,)
+ArticleTextBox.insert("end", "", ("centered",))
+ArticleTextBox.tag_config('highlight', background='white', foreground='black')
+ArticleTextBox.bind("<ButtonRelease-1>",d._on_click)
+#Checking
+CheckingLabel=Label(root, text="Please check the following names as they might not be correct ", font=("arial",20,"bold"), fg="steelblue", background='lightgrey')
+WordsLabel=Label(root,font=("arial",10,"bold"), fg="red", background='lightgrey')
+#locations
+heading.grid(row=0,column=0,sticky="nesw")
+label1.grid(row=3,column=0,sticky="nesw")
+ArticleTextBox.grid(row=4,column=0,sticky="nesw",rowspan=10)
+Highlight_textBTN.grid(row=15,column=0,)
+Unhighlight_textBTN.grid(row=16,column=0)
+CheckBTN.grid(row=17,column=0)
+namelabel.grid(row=4,column=1,sticky="nesw")
+numberlabel.grid(row=5,column=1,sticky="nesw")
+namebutton.grid(row=4,column=2,sticky="ew")
+numberbutton.grid(row=5,column=2,sticky="ew")
+highlightermode.grid(row=8,column=1)
+SourceLabel.grid(row=1,column=0)
+SourceTextBox.grid(row=2,column=0)
+CheckingLabel.grid(row=18,column=0)
+WordsLabel.grid(row=19,column=0)
+
+
+root.mainloop() 
