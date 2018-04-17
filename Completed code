@@ -1,0 +1,314 @@
+Imports
+import tkinter as tk
+import tkinter.scrolledtext as tkst
+from tkinter import *
+from nltk import ne_chunk, pos_tag, word_tokenize
+from nltk.tree import Tree
+from nltk.corpus import state_union
+import bs4 as bs
+import urllib.request
+import string
+import requests
+import random
+from bs4 import BeautifulSoup
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+
+#Array
+colournumber=[""]
+colours=["","red","blue"]     
+class defines():
+    global names
+    names=[]
+    global Search 
+    Search=[]
+    global Dates
+    Dates=[]
+    global NumbersLST
+    NumbersLST=[]
+    def _on_click(self, event):
+        colournumber=(var.get())
+        state = str(namebutton['state'])
+        if state != 'disabled':
+            returnedlist=d.highlight_text()
+            d.sel()
+            tags = ArticleTextBox.tag_names("insert wordstart")
+            if ("highlight-yellow" in tags)or("highlight-blue" in tags)or("highlight-red" in tags) :
+                if colournumber==2:
+                    ArticleTextBox.tag_remove("highlight-yellow", "insert wordstart", "insert wordend")
+                if colournumber==3:
+                    ArticleTextBox.tag_remove("highlight-blue", "insert wordstart", "insert wordend")
+                if colournumber==4:
+                    ArticleTextBox.tag_remove("highlight-red", "insert wordstart", "insert wordend")
+                wordclicked=ArticleTextBox.get("insert wordstart", "insert wordend")
+                SearchLEN=len(Search)
+                for x in range(0,SearchLEN):
+                    if Search[x]==wordclicked:
+                        Search.remove(wordclicked)                
+            else:
+                if colournumber==2:
+                    ArticleTextBox.tag_add("highlight-yellow", "insert wordstart", "insert wordend")
+                if colournumber==3:
+                    ArticleTextBox.tag_add("highlight-blue", "insert wordstart", "insert wordend")
+                if colournumber==4:
+                    ArticleTextBox.tag_add("highlight-red", "insert wordstart", "insert wordend")
+                wordclicked=ArticleTextBox.get("insert wordstart", "insert wordend")
+                Search.append(wordclicked)             
+            return Search
+            
+                
+
+    def highlight_text(self):
+        ArticleTextBox.tag_config('highlight-yellow', background='yellow', foreground='black')
+        ArticleTextBox.tag_config('highlight-blue', background='blue', foreground='black')
+        ArticleTextBox.tag_config('highlight-red', background='red', foreground='black')
+        global names
+        global Dates
+        global NumbersLST
+        global quotes
+        if not names:
+            article=ArticleTextBox.get(0.0,tk.END)
+            my_sent=article      
+            names=(d.get_continuous_chunks(my_sent))
+            namesSTR=str(names)
+            lenght = StringVar()
+            nameslistlength=len(names)
+            Dates=(re.findall(r'[A-Z]\w+\s\d+', my_sent))
+            DatesLEN=len(Dates)
+            Dateslistlength=len(Dates)
+            Number=(re.findall)
+            Numbers = ''
+            validLetters = "0123456789 £€$"
+            Numbers = ''.join([char for char in article if char in validLetters])
+            NumbersLST=Numbers.split()
+            NumbersLength=len(NumbersLST)
+            Quotes=(re.findall('"([^"]*)"', my_sent))
+            Quoteslength=len(Quotes)
+            QuotesSTR=str(Quotes)
+            for y in range(0,NumbersLength):
+                pos='1.0'
+                while True:
+                    pos = ArticleTextBox.search(NumbersLST[y], pos, stopindex=END, count=lenght)
+                    if not pos:
+                        break
+                    ArticleTextBox.tag_add('highlight-blue', pos, '{}+{}c'.format(pos, lenght.get()))
+                    pos += '+1c'
+            
+            for z in range(0,Dateslistlength):
+                pos='1.0'
+                while True:
+                    pos = ArticleTextBox.search(Dates[z], pos, stopindex=END, count=lenght)
+                    if not pos:
+                        break
+                    ArticleTextBox.tag_add('highlight-red', pos, '{}+{}c'.format(pos, lenght.get()))
+                    pos += '+1c'                   
+            for w in range(0,nameslistlength):
+                pos='1.0'
+                while True:
+                    pos = ArticleTextBox.search(names[w], pos, stopindex=END, count=lenght)
+                    if not pos:
+                        break
+                    ArticleTextBox.tag_add('highlight-yellow', pos, '{}+{}c'.format(pos, lenght.get()))
+                    pos += '+1c'
+            for x in range(0,Quoteslength):
+                pos='1.0'
+                while True:
+                    pos = ArticleTextBox.search(Quotes[x], pos, stopindex=END, count=lenght)
+                    if not pos:
+                        break
+                    ArticleTextBox.tag_add('highlight-green', pos, '{}+{}c'.format(pos, lenght.get()))
+                    pos += '+1c'
+            
+        
+                
+    def unhighlight_text(self):
+        ArticleTextBox.tag_config('highlight-yellow', background='white', foreground='black')
+        ArticleTextBox.tag_config('highlight-blue', background='white', foreground='black')
+        ArticleTextBox.tag_config('highlight-red', background='white', foreground='black')
+        
+    #Highlighter mode
+    def highlighter_mode(self):
+        state = str(namebutton['state'])
+        if state == 'disabled':
+            namebutton.configure(state=NORMAL)     
+            numberbutton.configure(state=NORMAL)
+            datebutton.configure(state=NORMAL)
+            namebutton.select()
+            quotesbutton.configure(state=NORMAL)
+            d.highlight_text()          
+        else:
+            namebutton.configure(state=DISABLED)
+            numberbutton.configure(state=DISABLED)
+            datebutton.configure(state=DISABLED)
+            quotesbutton.configure(state=DISABLED)
+            d.unhighlight_text()
+
+    #Colour picker
+    def sel(self):
+       selection = "You selected the option " + str(var.get())
+       colournumber=(var.get())
+       if colournumber==2:
+           ArticleTextBox.tag_config('highlight-yellow', background='yellow', foreground='black')
+       elif colournumber==3:
+                   ArticleTextBox.tag_config('highlight-blue', background='blue', foreground='black')
+       elif colournumber==4:          
+           ArticleTextBox.tag_config('highlight-red', background='red', foreground='black')
+       else:
+           ArticleTextBox.tag_config('highlight', background='yellow', foreground='black')
+
+
+
+    def checking(self):
+        d.highlight_text()
+        global Search
+        global names
+        source=Sourceinput.get()
+        if not source:
+            warning.config(text="Sorry! You have not put a website. Please try again.")
+            return
+        else:
+            warning.config(text=" ")
+        example_sentence=ArticleTextBox.get(0.0,tk.END)
+        examplelen=len(example_sentence)
+        if examplelen<2:
+            warning.config(text="Sorry! You have not put any text in the textbox. Please try again.")
+            return
+        else:
+            warning.config(text=" ")
+        SearchArray=[]
+        TotalSearch=list(set(Search + names+ Dates+NumbersLST))
+        stop_words=set(stopwords.words("english"))
+        words = word_tokenize(example_sentence)
+        filtered_sentence=[]
+        for w in words:
+            if w not in stop_words:
+                filtered_sentence.append(w)
+        sauce = urllib.request.urlopen(source).read()
+        soup = bs.BeautifulSoup(sauce,'lxml')
+        source_stopwords=""
+        for paragraph in soup.find_all('p'):
+            source_stopwords=source_stopwords+paragraph.text
+            print(source_stopwords)
+            SourceList=source_stopwords.split()
+            SourceList = [''.join(c for c in s if c not in string.punctuation) for s in SourceList]
+        for paragraph in soup.find_all('h2'):
+            source_stopwords=source_stopwords+paragraph.text
+            SourceList=source_stopwords.split()
+
+            SourceList = [''.join(c for c in s if c not in string.punctuation) for s in SourceList]
+
+            
+        SourceListSTR=" ".join(SourceList)
+        SourceListLEN=len(SourceList)
+        TotalSearchSTR = " ".join(TotalSearch)
+        TotalSearchLST=TotalSearchSTR.split()
+        TotalSearchLST=[''.join(c for c in s if c not in string.punctuation) for s in TotalSearchLST]
+        TotalSearchLST=[s for s in TotalSearchLST if s]
+        TotalSearchLEN=len(TotalSearchLST)
+        NotIncludedWords = list(TotalSearchLST)       
+        matching_words=[]
+        for x in range(0,TotalSearchLEN):
+              if SourceListSTR.find(TotalSearchLST[x])== -1:
+                ty=0
+              else:
+                matching_words.append(TotalSearchLST[x])
+        CheckingWords=(list(set(TotalSearchLST) - set(matching_words)))
+        WordsLabel.config(text=CheckingWords)
+        
+    #Splits down the names
+    def get_continuous_chunks(self,text):
+            chunked = ne_chunk(pos_tag(word_tokenize(text)))
+            prev = None
+            continuous_chunk = []
+            current_chunk = []
+            for i in chunked:
+                    if type(i) == Tree:
+                            current_chunk.append(" ".join([token for token, pos in i.leaves()]))
+                    elif current_chunk:
+                            named_entity = " ".join(current_chunk)
+                            if named_entity not in continuous_chunk:
+                                    continuous_chunk.append(named_entity)
+                                    current_chunk = []
+                    else:
+                            continue
+            return continuous_chunk
+
+
+
+    #Sorts out the size of the screen
+def center_windowroot(width=300, height=200):
+    # get screen width and height
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    # calculate position x and y coordinates
+    x = (screen_width/2) - (width/2)
+    y = (screen_height/2) - (height/2)
+    root.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
+
+numbercolour=colournumber[0]
+d = defines()
+#Creates the main frame
+root = tk.Tk()
+root.title("Writing is hard!")
+root.configure(background='lightgrey')
+#Sets size of window
+center_windowroot(1000,500)
+#heading
+heading = Label(root, text="Welcome to the app which checks your content for you!", font=("arial",30,"bold"), fg="steelblue", background='lightgrey')
+#Label
+label1=Label(root, text="Please type in your article: ", font=("arial",20,"bold"), fg="steelblue", background='lightgrey')
+#Buttons
+Highlight_textBTN= Button(root,text='Show highlights',command=d.highlight_text)
+Unhighlight_textBTN=Button(root,text='Hide highlights',command=d.unhighlight_text)
+CheckBTN=Button(root,text='Check',command=d.checking)
+#Source input
+Sourceinput=Entry(root,width=50)
+Sourcelabel= Label(text="Please enter your source material website", font=("arial",10,"bold"), fg="black", background='lightgrey')
+warning=Label(root, text=" ", font=("arial",10,"bold"), fg="red", background='lightgrey')
+#Highlighter labels
+namelabel= Label(text="names", font=("arial",10,"bold"), fg="black", background='yellow')
+numberlabel=Label(text="numbers", font=("arial",10,"bold"), fg="black", background='blue')
+datelabel=Label(text="date", font=("arial",10,"bold"), fg="black", background='red')
+quoteslabel=Label(text="quotes", font=("arial",10,"bold"), fg="black", background='green')
+#Highlighter radiobuttons
+var = IntVar()
+highlightermode=Checkbutton(root, text="Highlighter mode",variable=var,command=d.highlighter_mode)
+highlightermode.select()
+namebutton=Radiobutton(root, variable=var, value=2,command=d.sel, state=DISABLED)
+numberbutton=Radiobutton(root, variable=var, value=3,command=d.sel, state=DISABLED)
+datebutton=Radiobutton(root, variable=var, value=4,command=d.sel, state=DISABLED)
+quotesbutton=Radiobutton(root,variable=var,value=5,command=d.sel, state=DISABLED)
+#Textbox
+ArticleTextBox = tkst.ScrolledText(root,width=100, height=20, wrap = 'word')
+ArticleTextBox.insert("end", "", ("centered",))
+ArticleTextBox.tag_config('highlight', background='white', foreground='black')
+ArticleTextBox.bind("<ButtonRelease-1>",d._on_click)
+#Checking
+CheckingLabel=Label(root, text="Please check the following as they might not be correct ", font=("arial",20,"bold"), fg="steelblue", background='lightgrey')
+WordsLabel=Label(root,font=("arial",10,"bold"), fg="red", background='lightgrey',wraplength=500)
+#locations
+heading.grid(row=0,column=0,sticky="nesw")
+label1.grid(row=4,column=0,sticky="nesw")
+Sourcelabel.grid(row=1,column=0)
+Sourceinput.grid(row=2,column=0)
+warning.grid(row=3,column=0)
+ArticleTextBox.grid(row=7,column=0,sticky="nesw",rowspan=10)
+Highlight_textBTN.grid(row=18,column=0,)
+Unhighlight_textBTN.grid(row=19,column=0)
+CheckBTN.grid(row=20,column=0)
+namelabel.grid(row=7,column=1,sticky="nesw")
+numberlabel.grid(row=8,column=1,sticky="nesw")
+datelabel.grid(row=9,column=1,sticky="nesw")
+namebutton.grid(row=7,column=2,sticky="ew")
+numberbutton.grid(row=8,column=2,sticky="ew")
+datebutton.grid(row=9,column=2,sticky="ew")
+highlightermode.grid(row=11,column=1)
+CheckingLabel.grid(row=21,column=0)
+WordsLabel.grid(row=22,column=0)
+
+
+root.mainloop()  
